@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "interpolate-blood"
+version = "0.1.0"
+description = "make sense of blood curves"
+authors = ["Anthony Galassi <28850131+bendhouseart@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "interpolate_blood"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10, <3.13"
+scipy = "^1.11.1"
+pandas = "^2.0.3"
+matplotlib = "^3.7.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
