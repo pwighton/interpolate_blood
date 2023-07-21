@@ -3,7 +3,7 @@ import scipy
 import argparse
 import pandas
 import matplotlib.pyplot as plt
-
+import sys
 
 parser = argparse.ArgumentParser(description='Returns a point along a curve fitted to the inputs from a blood tsv, used to' 
                                  'match blood activity to frame timing of a pet scan.')
@@ -11,6 +11,8 @@ parser = argparse.ArgumentParser(description='Returns a point along a curve fitt
 parser.add_argument('-m', '--manual-input', help='Manually sampled input file name', required=True)
 parser.add_argument('-a', '--auto-input', help='Auto sampled input file name', required=False)
 parser.add_argument('-t', '--frame-time', help='Frame time in seconds', required=True)
+parser.add_argument('-p', '--plot', help='plot out a figure of a smoothly interpolated activity curve', required=False, action='store_true', default=False)
+
 
 args = parser.parse_args()
 
@@ -45,11 +47,20 @@ whole_blood_radioactivity = blood_data.whole_blood_radioactivity.tolist()
 # scipy.interpolate.Akima1DInterpolator(x, y, axis=0)
 interpolate = scipy.interpolate.Akima1DInterpolator(time_curve, whole_blood_radioactivity, axis=0)
 
-# make a smooth curve from an expanded set of timepoints
-more_time = numpy.linspace(min(time_curve), max(time_curve), num=1000, endpoint=True, retstep=False, dtype=None)
-interpolated_curve = interpolate(more_time)
+# return a point along the curve at the frame time
+if float(args.frame_time) >= min(time_curve) and float(args.frame_time) <= max(time_curve):
+    interpolated_point = interpolate(float(args.frame_time))
+    print(interpolated_point)
+else:
+    print(f"Frame time out of range: min: {min(time_curve)} max: {max(time_curve)}")
+    sys.exit(1)
 
-# print the original data against the interpolated curve
-#plt.plot(time_curve, whole_blood_radioactivity, 'o') 
-plt.plot(more_time, interpolated_curve, '-')
-plt.show()
+if args.plot:
+    # make a smooth curve from an expanded set of timepoints
+    more_time = numpy.linspace(min(time_curve), max(time_curve), num=1000, endpoint=True, retstep=False, dtype=None)
+    interpolated_curve = interpolate(more_time)
+
+    # print the original data against the interpolated curve
+    plt.plot(time_curve, whole_blood_radioactivity, 'o') 
+    plt.plot(more_time, interpolated_curve, '-')
+    plt.show()
