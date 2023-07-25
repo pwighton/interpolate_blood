@@ -22,8 +22,14 @@ def interpolate(manual_input, auto_input, frame_time:Union[float, FloatList], pl
         frame_time = [float(frame_time)]
 
     # Read in the blood data
-    manual_blood_data = pandas.read_csv(manual_input, delimiter='\t')
-    auto_blood_data = pandas.read_csv(auto_input, delimiter='\t')
+    if manual_input:
+        manual_blood_data = pandas.read_csv(manual_input, delimiter='\t')
+    else:
+        manual_blood_data = pandas.DataFrame({'time': [], 'whole_blood_radioactivity': []})   
+    if auto_input:
+        auto_blood_data = pandas.read_csv(auto_input, delimiter='\t')
+    else:
+        auto_blood_data = pandas.DataFrame({'time': [], 'whole_blood_radioactivity': []})
 
     # combine whole blood data from manual and auto files into one dataframe
     # pandas deprecates stuff like append so we're just going to use lists from here on out
@@ -41,7 +47,7 @@ def interpolate(manual_input, auto_input, frame_time:Union[float, FloatList], pl
         whole_blood_radioactivity.extend(auto_whole_blood_radioactivity)
 
     # create a pandas dataframe and sort by time
-    blood_data = pandas.DataFrame({'time': time_curve, 'whole_blood_radioactivity': whole_blood_radioactivity})
+    blood_data = pandas.DataFrame({'time': time_curve, 'whole_blood_radioactivity': whole_blood_radioactivity}).dropna()
     blood_data.sort_values(by=['time'], inplace=True)
 
     time_curve = blood_data.time.tolist()
@@ -54,11 +60,14 @@ def interpolate(manual_input, auto_input, frame_time:Union[float, FloatList], pl
     # return a point along the curve at the frame time
     interpolated_points = []
     for time in frame_time:
-        if float(time) >= min(time_curve) and float(time) <= max(time_curve):
-            interpolated_points.append(float(interpolate(float(time))))
-        else:
-            raise OutOfRangeError(f"Frame time {time} is out of range: min: {min(time_curve)} max: {max(time_curve)}")
-    
+        try:
+            if float(time) >= min(time_curve) and float(time) <= max(time_curve):
+                interpolated_points.append(float(interpolate(float(time))))
+            else:
+                raise OutOfRangeError(f"Frame time {time} is out of range: min: {min(time_curve)} max: {max(time_curve)} found in file(s) {auto_input} {manual_input} )")
+        except OutOfRangeError as e:
+            print(e)
+
     return interpolated_points
 
     if plot:

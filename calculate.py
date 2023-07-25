@@ -84,7 +84,28 @@ def calculate_tacs_at_frametimes(bids_dataset_path: Path):
                         frame_times[subject][recording]['interpolated'] = interpolate(path, frame_times[subject]['FrameTimesStart'])
 
     # now that we've interpolated the blood activity curves we can write them to a tsv file
-    pass
+    for subject, data in frame_times.items():
+        # start to construct an output path in the derivatives folder within the dataset
+        output_path = bids_dataset_path / 'derivatives' / 'interpolated_tacs' / subject
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        # iterate over sessions
+        if data.get("Sessions"):
+            for session, session_data in data['Sessions'].items():
+                # create session folders
+                session_output_path = output_path / session / 'pet'
+                session_output_path.mkdir(parents=True, exist_ok=True)
+                #for interpolated_tac in session_data.get('interpolated_tac', []):
+                    # create a new tsv file for each interpolated tac
+                tac_path = session_output_path / f"sub-{subject}_ses-{session}_desc-interpolatedtac_blood.tsv"
+                with open(tac_path, 'w') as tac_file:
+                    tac_file.write(f"FrameTimesStart\twhole_blood_radioactivity\n")
+                    for time, radioactivity in zip(session_data['FrameTimesStart'], session_data['interpolated_tac']):
+                        tac_file.write(f"{time}\t{radioactivity}\n")
+        else:
+            print("You need to add logic for sessionless data here")
+        # check to see if both manual and autosampler are present
+
 
 
 if __name__ == '__main__':
