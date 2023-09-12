@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy
 import scipy
 import argparse
@@ -55,7 +57,10 @@ def interpolate(manual_input, auto_input, frame_time:Union[float, FloatList], pl
 
     # interpolate the data
     # scipy.interpolate.Akima1DInterpolator(x, y, axis=0)
-    interpolate = scipy.interpolate.Akima1DInterpolator(time_curve, whole_blood_radioactivity, axis=0)
+    #interpolate = scipy.interpolate.Akima1DInterpolator(time_curve, whole_blood_radioactivity, axis=0)
+
+    # PW 2024/09/12
+    interpolate = scipy.interpolate.interp1d(time_curve, whole_blood_radioactivity, axis=0)
 
     # return a point along the curve at the frame time
     interpolated_points = []
